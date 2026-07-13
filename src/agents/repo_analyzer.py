@@ -1,9 +1,13 @@
-﻿"""
+"""
 Agent: Repo Analyzer
 
-Role: the entry point of the pipeline. Fetches the repo's README, file
-structure, and metadata via the GitHub tool, and writes it into shared
-state for downstream agents to use.
+ROLE: Data-gathering specialist and entry point of the pipeline.
+SPECIALIZATION: Interfacing with the GitHub REST API; owns no LLM
+reasoning at all — this agent is deliberately "dumb" and mechanical, so a
+GitHub outage or bad URL fails predictably rather than producing a
+plausible-sounding but wrong result.
+READS FROM STATE: repo_url
+WRITES TO STATE: owner, repo, readme_text, file_structure, repo_metadata, errors
 """
 import logging
 
@@ -24,7 +28,7 @@ def repo_analyzer_node(state: PublicationAssistantState) -> dict:
             "readme_text": "",
             "file_structure": [],
             "repo_metadata": {},
-            "errors": [f"RepoAnalyzer: failed to fetch repo â€” {exc}"],
+            "errors": [f"RepoAnalyzer: failed to fetch repo — {exc}"],
         }
 
     return {

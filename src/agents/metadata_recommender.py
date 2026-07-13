@@ -1,10 +1,14 @@
-﻿"""
+"""
 Agent: Metadata Recommender
 
-Role: suggests tags/categories/keywords for the project. Combines a
-deterministic keyword-extraction tool with an LLM pass that filters the
-raw candidates down to ones that would actually make good Ready Tensor
-publication tags (specific, not generic English words).
+ROLE: Tagging/categorization specialist — one of two parallel branches
+that run right after Repo Analyzer.
+SPECIALIZATION: Combines a deterministic keyword-extraction tool with a
+narrow LLM pass whose only job is filtering raw candidates down to
+publication-quality tags. Does not touch title, summary, or structure
+checking — those belong to other agents.
+READS FROM STATE: readme_text
+WRITES TO STATE: suggested_keywords, suggested_tags, errors
 """
 import logging
 

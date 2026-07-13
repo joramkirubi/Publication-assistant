@@ -1,10 +1,16 @@
-﻿"""
+"""
 Agent: Reviewer / Critic
 
-Role: the final agent in the pipeline. Runs the deterministic README
-structure checker against Ready Tensor's Essential/Professional criteria,
-then synthesizes everything the other three agents produced into one
-final, human-readable report the user can act on.
+ROLE: Final synthesizer and quality gate — the last agent in the pipeline.
+SPECIALIZATION: Objective structural compliance checking (via a
+deterministic tool, not an LLM opinion) plus synthesis of everything the
+other three agents produced into one final, human-readable report.
+READS FROM STATE: readme_text, suggested_tags, suggested_title,
+    suggested_summary, positioning_notes, errors, human_approved,
+    human_feedback (the last two are populated by the human-in-the-loop
+    checkpoint in main.py, which pauses the graph right before this agent
+    runs).
+WRITES TO STATE: structure_report, review_notes, final_report, errors.
 """
 import logging
 
@@ -18,8 +24,9 @@ logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are the final reviewer in a multi-agent publication assistant \
 pipeline. You receive: the original README, a structural analysis (which standard \
-sections are present/missing), suggested tags, and a suggested title/summary from \
-other agents.
+sections are present/missing), suggested tags, a suggested title/summary from other \
+agents, and — if a human reviewed this run — their approval status and any free-text \
+feedback they left.
 
 Write a concise, actionable final report in markdown with these sections:
 ## Summary of Findings
@@ -28,12 +35,18 @@ Write a concise, actionable final report in markdown with these sections:
 ## Missing Sections (with a one-line fix suggestion for each)
 ## Overall Recommendation (2-3 sentences)
 
+If human feedback is present, weave it into your recommendation explicitly — e.g. if \
+they said a tag was wrong or a title didn't fit, acknowledge that and adjust your \
+final recommendation accordingly rather than ignoring it.
+
 Be specific and grounded in the actual data provided. Do not repeat the full README."""
 
 
 def reviewer_critic_node(state: PublicationAssistantState) -> dict:
     readme_text = state.get("readme_text", "")
     prior_errors = state.get("errors", [])
+    human_feedback = state.get("human_feedback", "")
+    human_approved = state.get("human_approved", True)
 
     structure_report = readme_structure_checker.invoke({"readme_text": readme_text})
 
@@ -49,6 +62,8 @@ def reviewer_critic_node(state: PublicationAssistantState) -> dict:
         )
     if prior_errors:
         review_notes.append("Upstream agent issues: " + "; ".join(prior_errors))
+    if human_feedback:
+        review_notes.append(f"Human feedback: {human_feedback}")
 
     new_errors = []
     try:
@@ -62,6 +77,8 @@ def reviewer_critic_node(state: PublicationAssistantState) -> dict:
                     f"Suggested title: {state.get('suggested_title', '')}\n"
                     f"Suggested summary: {state.get('suggested_summary', '')}\n"
                     f"Positioning notes: {state.get('positioning_notes', '')}\n\n"
+                    f"Human reviewed and approved: {human_approved}\n"
+                    f"Human feedback: {human_feedback or '(none given)'}\n\n"
                     f"README excerpt:\n{readme_text[:2000]}"
                 )
             ),

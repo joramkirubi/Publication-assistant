@@ -1,0 +1,44 @@
+<svg viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg" font-family="Consolas, 'Courier New', monospace">
+  <rect width="900" height="560" rx="14" fill="#0b1220"/>
+  <rect width="900" height="36" rx="14" fill="#1e293b"/>
+  <rect y="22" width="900" height="14" fill="#1e293b"/>
+  <circle cx="24" cy="18" r="6" fill="#f87171"/>
+  <circle cx="46" cy="18" r="6" fill="#facc15"/>
+  <circle cx="68" cy="18" r="6" fill="#4ade80"/>
+  <text x="450" y="23" text-anchor="middle" font-size="13" fill="#94a3b8">Terminal — Human-in-the-Loop Review Checkpoint</text>
+
+  <g font-size="13.5" fill="#cbd5e1">
+    <text x="24" y="66" fill="#4ade80">$ python main.py --repo https://github.com/joramkirubi/medical-rag-assistant</text>
+
+    <text x="24" y="96" fill="#64748b">Analyzing https://github.com/joramkirubi/medical-rag-assistant ...</text>
+
+    <text x="24" y="130" fill="#38bdf8">── Human Review Checkpoint ──────────────────────────────</text>
+    <text x="24" y="154">Suggested title:   MedAssist — Medical AI Assistant</text>
+    <text x="24" y="176">Suggested summary: Uses RAG + ReAct reasoning for medical Q&amp;A.</text>
+    <text x="24" y="198">Suggested tags:    RAG, LangChain, Groq, ChromaDB, ReAct</text>
+
+    <text x="24" y="232" fill="#facc15">Approve as-is? [Y/n/e=edit]: </text>
+    <text x="252" y="232" fill="#f8fafc" font-weight="bold">e</text>
+
+    <text x="24" y="258" fill="#facc15">New title (Enter to keep current): </text>
+    <text x="330" y="258" fill="#f8fafc" font-weight="bold">MedAssist Pro — Healthcare RAG Bot</text>
+
+    <text x="24" y="284" fill="#facc15">New summary (Enter to keep current): </text>
+    <text x="24" y="306" fill="#64748b">↵ (kept as-is)</text>
+
+    <text x="24" y="332" fill="#facc15">New tags, comma-separated (Enter to keep current): </text>
+    <text x="24" y="354" fill="#64748b">↵ (kept as-is)</text>
+
+    <text x="24" y="388" fill="#facc15">Any feedback on these suggestions? (optional): </text>
+    <text x="24" y="410" fill="#f8fafc" font-weight="bold">Original title was too generic for a healthcare tool</text>
+
+    <line x1="24" y1="430" x2="876" y2="430" stroke="#334155" stroke-width="1"/>
+
+    <text x="24" y="458" fill="#a78bfa" font-weight="bold">## Summary of Findings</text>
+    <text x="24" y="480">README lacks Overview, Usage, Configuration, Testing sections.</text>
+
+    <text x="24" y="506" fill="#a78bfa" font-weight="bold">## Overall Recommendation</text>
+    <text x="24" y="528">Per your feedback, the title now better reflects the healthcare</text>
+    <text x="24" y="546">focus. Add the missing sections above to reach Essential tier.</text>
+  </g>
+</svg>

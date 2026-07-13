@@ -1,10 +1,15 @@
-﻿"""
+"""
 Agent: Content Improver
 
-Role: proposes a better title and summary for the project. Uses the web
-search tool to gather a little positioning context (how similar projects
-are titled/described), then asks the LLM to draft improved copy grounded
-in the actual README content (to avoid hallucinated claims).
+ROLE: Copywriting/positioning specialist — the second of two parallel
+branches that run right after Repo Analyzer.
+SPECIALIZATION: Grounded content drafting. Uses web search for external
+positioning context, but is explicitly instructed to draft claims only
+from the README itself — this agent's specific job is balancing "sound
+appealing" against "don't invent features," which is why its prompt is
+separate from Metadata Recommender's narrower tagging job.
+READS FROM STATE: readme_text, repo
+WRITES TO STATE: suggested_title, suggested_summary, positioning_notes, errors
 """
 import logging
 
@@ -24,7 +29,7 @@ propose:
 2. A 2-3 sentence summary that clearly states what the project does and why it matters
 3. One sentence of positioning notes: how this project compares to similar ones you saw
 
-Ground every claim in the README content provided â€” do not invent features, \
+Ground every claim in the README content provided — do not invent features, \
 performance numbers, or capabilities that aren't described in the README.
 
 Respond in exactly this format:
