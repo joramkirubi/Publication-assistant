@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tool: WebSearchTool
 
 Thin wrapper around Tavily's search API, used by the Content Improver agent
@@ -30,7 +30,7 @@ def web_search(query: str, max_results: int = 5) -> dict:
         return {
             "results": [],
             "note": (
-                "TAVILY_API_KEY not set — web search skipped. "
+                "TAVILY_API_KEY not set - web search skipped. "
                 "Set it in .env to enable competitive/positioning research."
             ),
         }

@@ -8,13 +8,13 @@ Flow:
 
 repo_analyzer runs first (everything downstream needs the README).
 metadata_recommender and content_improver then run as parallel branches,
-since neither depends on the other's output â€” this is a deliberate design
+since neither depends on the other's output - this is a deliberate design
 choice to cut latency, not just an artifact of the framework.
 
 Before reviewer_critic runs, the graph PAUSES (a static interrupt) so a
 human can inspect the suggested tags/title/summary, optionally edit them,
 and optionally leave free-text feedback. reviewer_critic then runs with
-whatever the human approved, edited, or commented on â€” this is a real
+whatever the human approved, edited, or commented on - this is a real
 human-in-the-loop checkpoint, not just a log statement.
 """
 import uuid
@@ -52,7 +52,7 @@ def build_graph():
 
     checkpointer = InMemorySaver()
     # interrupt_before pauses the graph right before the named node runs,
-    # so the human reviews/edits state BEFORE that node acts on it â€”
+    # so the human reviews/edits state BEFORE that node acts on it --
     # the right choice here since we want to gate what Reviewer/Critic
     # sees, not review something it already did (that would be
     # interrupt_after instead).
@@ -67,7 +67,7 @@ def start_pipeline(repo_url: str, user_description: str | None = None):
     resume_pipeline().
 
     `config` carries the thread_id the checkpointer uses to know which
-    paused run to resume later â€” it must be passed back into
+    paused run to resume later - it must be passed back into
     resume_pipeline() unchanged.
     """
     # Guardrail: validated/normalized here, once, at the single entry point

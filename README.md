@@ -44,7 +44,7 @@ Agentic AI In Production certification.
 
 You give it a GitHub repo URL. It gives back a report suggesting a better
 title and summary, relevant tags, and exactly which standard documentation
-sections (README structure, license, installation, etc.) are missing â€”
+sections (README structure, license, installation, etc.) are missing --
 grounded in Ready Tensor's own Open Source Repository Guide
 Essential/Professional criteria, not just a generic opinion.
 
@@ -58,15 +58,15 @@ LangGraph graph:
 | **Content Improver** | Drafts a better title/summary, checks how similar projects are positioned | `web_search` |
 | **Reviewer / Critic** | Checks README structure against Ready Tensor's documentation tiers, synthesizes the final report | `readme_structure_checker` |
 
-`Metadata Recommender` and `Content Improver` run as parallel branches â€”
+`Metadata Recommender` and `Content Improver` run as parallel branches --
 neither depends on the other's output, so running them concurrently cuts
 latency without changing the result. `Reviewer / Critic` waits on both
 before compiling the final report.
 
 ## Target Audience
 
-AI/ML practitioners preparing a project (GitHub repo) for public sharing â€”
-on Ready Tensor, GitHub, or elsewhere â€” who want an objective first pass
+AI/ML practitioners preparing a project (GitHub repo) for public sharing --
+on Ready Tensor, GitHub, or elsewhere - who want an objective first pass
 before investing time in polishing it themselves.
 
 ## Architecture
@@ -83,7 +83,7 @@ was hardened for the Agentic AI In Production certification. What changed:
 |---|---|
 | **Testing** | 78 tests, 97% statement coverage on `src/` (well above the 70% bar), covering every agent, tool, and the new guardrails/resilience/health modules. All mock external calls and run offline. |
 | **Guardrails & security** | `src/guardrails.py`: strict repo-URL validation (rejects non-GitHub hosts, path traversal, lookalike domains), input sanitization, and output secret-redaction on the final report. See [Guardrails & Security](#guardrails--security). |
-| **User interface** | `app.py`: a Streamlit web UI with the same input â†’ human-review â†’ report flow as the CLI, plus a sidebar health-check and a download button. See [Web UI](#web-ui). |
+| **User interface** | `app.py`: a Streamlit web UI with the same input -> human-review -> report flow as the CLI, plus a sidebar health-check and a download button. See [Web UI](#web-ui). |
 | **Resilience & monitoring** | `src/resilience.py`: retry-with-exponential-backoff and hard wall-clock timeouts wrap every outbound call (GitHub API, Tavily, Groq). `src/health.py`: a config/connectivity health check exposed via `--health-check` and the UI sidebar. See [Resilience & Monitoring](#resilience--monitoring). |
 | **Documentation** | This README plus [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [docs/API.md](docs/API.md), [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md), and [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md). |
 
@@ -93,8 +93,8 @@ than replacing it.
 
 ## Human-in-the-Loop Review
 
-The graph genuinely pauses right before the Reviewer/Critic agent runs â€”
-using LangGraph's `interrupt_before` mechanism backed by a checkpointer â€”
+The graph genuinely pauses right before the Reviewer/Critic agent runs --
+using LangGraph's `interrupt_before` mechanism backed by a checkpointer --
 so you can inspect the suggested title, summary, and tags, edit any of
 them, and leave free-text feedback before the final report is generated.
 The edited values and feedback are injected back into shared state and are
@@ -102,16 +102,16 @@ what Reviewer/Critic actually reads when it resumes; this is verified by a
 dedicated test (`tests/test_human_in_the_loop.py`) that inspects the exact
 text sent to the LLM after an edit.
 
-**Two issues surfaced only through real, interactive execution â€” not the
+**Two issues surfaced only through real, interactive execution - not the
 mocked test suite alone:**
 
 1. Because Metadata Recommender and Content Improver write to state in the
    same parallel step, applying a human's edit via `update_state()` raised
-   `InvalidUpdateError: Ambiguous update, specify as_node` â€” LangGraph
+   `InvalidUpdateError: Ambiguous update, specify as_node` - LangGraph
    couldn't infer which of the two simultaneous writers the edit belonged
    to. Fixed by explicitly passing `as_node="content_improver"`.
 2. The interactive approve/edit prompt initially treated any unrecognized
-   input â€” not just `n` or `e` â€” as silent approval. Fixed by validating
+   input - not just `n` or `e` - as silent approval. Fixed by validating
    input and re-prompting until a real Y/n/e answer is given, backed by a
    dedicated regression test (`tests/test_cli_review_checkpoint.py`).
 
@@ -125,9 +125,9 @@ scripted/CI use.
 ## Prerequisites
 
 - Python 3.10+
-- A [Groq API key](https://console.groq.com/keys) (required, free tier available â€” the agents use a Groq-hosted Llama model for reasoning)
-- A [Tavily API key](https://tavily.com/) (optional â€” enables the web search tool; the pipeline runs without it, just with less positioning context)
-- A GitHub personal access token (optional â€” raises the GitHub API rate limit from 60/hr to 5000/hr)
+- A [Groq API key](https://console.groq.com/keys) (required, free tier available - the agents use a Groq-hosted Llama model for reasoning)
+- A [Tavily API key](https://tavily.com/) (optional - enables the web search tool; the pipeline runs without it, just with less positioning context)
+- A GitHub personal access token (optional - raises the GitHub API rate limit from 60/hr to 5000/hr)
 
 ## Installation
 
@@ -151,7 +151,7 @@ python main.py --repo https://github.com/joramkirubi/medical-rag-assistant
 
 By default, the graph pauses right before the final report is generated so
 you can review, edit, or leave feedback on the suggested title/tags/summary
-â€” see [Human-in-the-Loop Review](#human-in-the-loop-review) above. Pass
+ - see [Human-in-the-Loop Review](#human-in-the-loop-review) above. Pass
 `--auto-approve` to skip that prompt for scripted/non-interactive use:
 
 ```bash
@@ -174,7 +174,7 @@ python main.py --health-check
 ```
 
 <details>
-<summary><b>Sample output (click to expand)</b> â€” real, unedited run against an independent repo</summary>
+<summary><b>Sample output (click to expand)</b> - real, unedited run against an independent repo</summary>
 
 ```
 Analyzing https://github.com/joramkirubi/medical-rag-assistant ...
@@ -186,7 +186,7 @@ lacks critical sections like overview/description, usage, configuration,
 testing, and contributing.
 
 ## Suggested Title & Summary
-MedAssist â€” Medical AI Assistant: uses Retrieval-Augmented Generation (RAG)
+MedAssist - Medical AI Assistant: uses Retrieval-Augmented Generation (RAG)
 and ReAct reasoning strategy for medical question answering.
 
 ## Suggested Tags
@@ -204,7 +204,7 @@ ChromaDB, ReAct, MedicalQuestionAnswering, Streamlit
 Add the missing essential and professional sections to improve usability,
 maintainability, and community engagement.
 
-âœ… Report saved to reports/joramkirubi_medical-rag-assistant_20260702-143012.md
+[OK] Report saved to reports/joramkirubi_medical-rag-assistant_20260702-143012.md
 ```
 
 </details>
@@ -220,16 +220,16 @@ streamlit run app.py
 
 This opens a local web UI (`http://localhost:8501`) with three screens:
 
-1. **Input** â€” paste a repo URL and optional description.
-2. **Human review** â€” edit the suggested title/summary/tags and leave
+1. **Input** - paste a repo URL and optional description.
+2. **Human review** - edit the suggested title/summary/tags and leave
    feedback, mirroring the CLI's interactive checkpoint.
-3. **Report** â€” the rendered final report plus a "Download report (.md)"
+3. **Report** - the rendered final report plus a "Download report (.md)"
    button.
 
 The sidebar has a **Run health check** button (see
 [Resilience & Monitoring](#resilience--monitoring)) and a **Start over**
 button to reset the session. The UI is a thin wrapper over
-`src/graph.py` â€” it contains no pipeline logic of its own, so everything
+`src/graph.py` - it contains no pipeline logic of its own, so everything
 documented above about the pipeline's behavior applies here unchanged.
 
 ## Configuration
@@ -249,20 +249,20 @@ All configuration is via environment variables, loaded from `.env`
 
 `src/guardrails.py` sits at both edges of the system:
 
-- **Input validation** â€” `validate_repo_url` accepts only
+- **Input validation** - `validate_repo_url` accepts only
   `https://github.com/<owner>/<repo>`-shaped URLs: no other hosts
   (blocks SSRF-style redirection to internal hosts), no `http://`, no
   extra path segments, no control characters, capped length. Both the CLI
   and the UI funnel through this single validator via `start_pipeline`.
-- **Input sanitization** â€” `sanitize_user_description` strips control
+- **Input sanitization** - `sanitize_user_description` strips control
   characters, collapses whitespace, and caps the optional free-text
   description at 500 characters before it ever reaches an LLM prompt.
-- **Output filtering** â€” `filter_output` runs a regex-based redaction pass
+- **Output filtering** - `filter_output` runs a regex-based redaction pass
   over the final report for anything that looks like a leaked API key
   (Groq, GitHub, Tavily, AWS, generic `sk-` style keys), as a last-resort
   net against a README or web-search snippet echoing a real credential
   back through the LLM.
-- **Error handling** â€” every agent already wrapped its own logic in
+- **Error handling** - every agent already wrapped its own logic in
   try/except with graceful degradation (recorded in `state["errors"]`,
   surfaced in the final report and CLI/UI output); `main.py` and `app.py`
   additionally catch `GuardrailViolation` and any unexpected pipeline
@@ -275,11 +275,11 @@ All configuration is via environment variables, loaded from `.env`
 network/LLM call (GitHub API reads, `invoke_llm` for all three
 LLM-calling agents):
 
-- **`with_retry`** â€” retries transient failures (connection errors,
+- **`with_retry`** - retries transient failures (connection errors,
   timeouts, 5xx/429 responses) up to a bounded number of attempts with
   exponential backoff, then re-raises so the existing per-agent
   degradation logic handles a genuinely persistent failure.
-- **`with_timeout`** â€” runs the call in a worker thread with a hard
+- **`with_timeout`** - runs the call in a worker thread with a hard
   wall-clock timeout, raising `ResilienceTimeoutError` instead of letting
   a hung call stall the whole pipeline. Thread-based (not
   `signal.alarm`-based) so it works on Windows, this project's primary
@@ -302,7 +302,7 @@ place to look for a root cause.
 
 Note on iteration/loop caps: this pipeline is a fixed DAG, not a looping
 agent, so a loop-limit guardrail (aimed at agentic loops that could run
-away) doesn't have a direct equivalent here â€” the analogous risk (a
+away) doesn't have a direct equivalent here - the analogous risk (a
 single node hanging) is covered by `with_timeout` instead. See
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md#known-limitations) for the
 full reasoning.
@@ -321,13 +321,13 @@ pytest tests/ --cov=src --cov-report=term-missing   # 97% coverage on src/
 
 ## Documentation
 
-- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) â€” system diagram, component
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) - system diagram, component
   table, design decisions, known limitations.
-- [docs/API.md](docs/API.md) â€” state schema and CLI/UI interface
+- [docs/API.md](docs/API.md) - state schema and CLI/UI interface
   specification.
-- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) â€” install, configure, run
+- [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) - install, configure, run
   (CLI + UI), test, and optionally containerize.
-- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) â€” common issues and
+- [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) - common issues and
   FAQ.
 
 ## Design Decisions & Limitations
@@ -337,7 +337,7 @@ pytest tests/ --cov=src --cov-report=term-missing   # 97% coverage on src/
 <br>
 
 Repo analysis, metadata suggestion, content drafting, and review are
-genuinely different tasks with different failure modes â€” separating them
+genuinely different tasks with different failure modes - separating them
 keeps each agent's prompt focused and makes failures easier to isolate (see
 `errors` in the shared state).
 </details>
@@ -364,7 +364,7 @@ in `tests/test_agents_with_mocks.py` reproduces this exact scenario.
 </details>
 
 <details>
-<summary><b>Evaluation â€” deliberately scoped out</b></summary>
+<summary><b>Evaluation - deliberately scoped out</b></summary>
 <br>
 
 Formal evaluation metrics (task success rate across a benchmark set of
@@ -382,13 +382,13 @@ scope decision, not an oversight.
 
 - Only public GitHub repos are supported (no GitLab/Bitbucket, no private
   repos without a token with access).
-- The `readme_structure_checker` is regex/heading based â€” a README that
+- The `readme_structure_checker` is regex/heading based - a README that
   documents installation steps in prose without a heading may be flagged
   as missing that section.
 - `Content Improver`'s suggestions are only as good as the web search
   context available; without `TAVILY_API_KEY` it drafts from the README
   alone.
-- No automated fact-checking agent yet â€” the Reviewer/Critic asks the LLM
+- No automated fact-checking agent yet - the Reviewer/Critic asks the LLM
   to ground claims in the README, but does not independently verify them.
 - This is a fixed-DAG pipeline, not a looping agent, so loop/iteration
   caps aren't directly applicable (see
@@ -397,7 +397,7 @@ scope decision, not an oversight.
 
 ## License
 
-MIT â€” see [LICENSE](LICENSE).
+MIT - see [LICENSE](LICENSE).
 
 ## Contributing
 

@@ -20,7 +20,7 @@ from src.health import format_health_report, run_health_check
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)
 
-st.set_page_config(page_title="Publication Assistant", page_icon="ðŸ“˜", layout="centered")
+st.set_page_config(page_title="Publication Assistant", layout="centered")
 
 
 def _init_session_state() -> None:
@@ -64,7 +64,7 @@ def _render_sidebar() -> None:
 
 
 def _render_input_stage() -> None:
-    st.title("ðŸ“˜ Publication Assistant")
+    st.title("Publication Assistant")
     st.write(
         "Give it a public GitHub repo URL. It reviews the README, suggests a "
         "better title/summary/tags, and flags missing documentation sections "
@@ -104,7 +104,7 @@ def _render_input_stage() -> None:
 
 
 def _render_review_stage() -> None:
-    st.title("ðŸ“˜ Publication Assistant")
+    st.title("Publication Assistant")
     st.subheader("Human Review Checkpoint")
     st.write(
         "The pipeline is paused here, right before the final report is written. "
@@ -114,7 +114,7 @@ def _render_review_stage() -> None:
     paused_state = st.session_state.paused_state
 
     if paused_state.get("errors"):
-        with st.expander("âš ï¸ Warnings from earlier steps", expanded=False):
+        with st.expander("Warnings from earlier steps", expanded=False):
             for err in paused_state["errors"]:
                 st.write(f"- {err}")
 
@@ -162,11 +162,11 @@ def _render_review_stage() -> None:
 
 
 def _render_done_stage() -> None:
-    st.title("ðŸ“˜ Publication Assistant")
+    st.title("Publication Assistant")
     result = st.session_state.result
 
     if result.get("errors"):
-        with st.expander("âš ï¸ Warnings encountered during the run", expanded=False):
+        with st.expander("Warnings encountered during the run", expanded=False):
             for err in result["errors"]:
                 st.write(f"- {err}")
 

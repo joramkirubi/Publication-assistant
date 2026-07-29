@@ -1,4 +1,4 @@
-"""
+﻿"""
 Shared state that flows through the LangGraph graph. Every agent node reads
 from and writes to this single TypedDict, which is how the agents
 "communicate" and coordinate in this system.
@@ -46,6 +46,6 @@ class PublicationAssistantState(TypedDict, total=False):
     # MetadataRecommender and ContentImprover run in parallel and can both
     # write here in the same step. `operator.add` tells LangGraph to
     # concatenate the lists each node returns rather than erroring on the
-    # simultaneous write — so each node should return only ITS OWN new
+    # simultaneous write - so each node should return only ITS OWN new
     # error(s) here, not a copy of the full accumulated list.
     errors: Annotated[list[str], operator.add]

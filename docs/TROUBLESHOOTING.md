@@ -24,7 +24,7 @@ private-repo URLs with embedded tokens, no extra path segments (e.g.
 `/tree/main`), no `http://` (must be `https://`). Strip the URL down to
 `https://github.com/owner/repo` and retry.
 
-### `RepoAnalyzer: failed to fetch repo â€” ...` (in the report's warnings)
+### `RepoAnalyzer: failed to fetch repo -- ...` (in the report's warnings)
 
 Usually one of:
 - **404 from GitHub** -- the repo is private, misspelled, or deleted.
@@ -85,18 +85,40 @@ If `GROQ_API_KEY` shows `[OK]` but GitHub shows `[FAIL]` for this reason,
 the pipeline itself will likely still fail on `RepoAnalyzer` for the same
 DNS reason -- fix connectivity first before running a real analysis.
 
-### Console shows garbled characters like `Ã¢â€â‚¬Ã¢â€â‚¬` or `Ã¢Å“â€¦` instead of the health check / report symbols
+### Console or web UI shows garbled/mangled characters instead of normal text or symbols
 
-This is a PowerShell console encoding mismatch (the app prints UTF-8,
-but your console's active code page is something else, commonly on
-Windows). All CLI-facing output in this project is written in
-plain ASCII precisely to avoid this, so if you see mojibake like this,
-you're most likely on an outdated copy of `main.py` / `src/health.py` --
-re-run the setup script or re-pull the latest version. If it persists on
-current code, you can also force UTF-8 for the session with:
-```powershell
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-```
+This is a text encoding mismatch, and it has two possible sources:
+
+1. **PowerShell's console code page.** If you see stray multi-character
+   sequences where a single symbol should be, your console's active code
+   page doesn't match UTF-8. Every piece of CLI-facing output in this
+   project (`main.py`, `src/health.py`) is plain ASCII specifically to
+   avoid this, so seeing it there means you're on an outdated copy --
+   re-apply the latest setup/patch script. You can also force UTF-8 for
+   the current session with:
+   ```powershell
+   [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+   ```
+
+2. **A setup/patch `.ps1` script read in the wrong encoding.** Windows
+   PowerShell 5.1 reads a `.ps1` file without a UTF-8 byte-order-mark
+   using your system's legacy code page (often Windows-1252), not UTF-8.
+   If a script embeds a non-ASCII character (an em dash, a curly quote,
+   an emoji) inside a here-string, PowerShell can misread those bytes
+   *while parsing the script itself* -- so the corrupted text gets baked
+   into the `.py`/`.md` file it writes, and shows up everywhere that file
+   is read afterward (console, browser, editor -- all of them, since the
+   file's actual bytes are now wrong, not just how one tool displays
+   them). This is why every source file in this project deliberately
+   avoids em dashes, curly quotes, and emoji in favor of plain ASCII
+   (`--`, straight quotes, `[OK]`/`[WARNING]` instead of symbols) -- it
+   removes the failure mode entirely rather than relying on remembering
+   to set an encoding flag.
+
+   If you re-apply a patch script and still see corruption afterward,
+   confirm the `.ps1` file itself was saved as UTF-8 (with or without
+   BOM) before running it, or run it via PowerShell 7+ (`pwsh`), which
+   defaults to UTF-8 and doesn't have this legacy behavior.
 
 
 The error detail shown in the UI is the same exception message the CLI

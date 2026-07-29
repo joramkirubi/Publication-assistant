@@ -1,12 +1,12 @@
 ﻿"""
 Agent: Metadata Recommender
 
-ROLE: Tagging/categorization specialist â€” one of two parallel branches
+ROLE: Tagging/categorization specialist - one of two parallel branches
 that run right after Repo Analyzer.
 SPECIALIZATION: Combines a deterministic keyword-extraction tool with a
 narrow LLM pass whose only job is filtering raw candidates down to
 publication-quality tags. Does not touch title, summary, or structure
-checking â€” those belong to other agents.
+checking - those belong to other agents.
 READS FROM STATE: readme_text
 WRITES TO STATE: suggested_keywords, suggested_tags, errors
 """
