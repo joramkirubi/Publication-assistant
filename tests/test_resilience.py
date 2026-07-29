@@ -1,0 +1,92 @@
+﻿import time
+
+import pytest
+
+from src.resilience import ResilienceTimeoutError, with_retry, with_timeout
+
+
+class FlakyCounter:
+    """Helper: fails N times then succeeds, to simulate transient errors."""
+
+    def __init__(self, fail_times: int, exc_type=ValueError):
+        self.fail_times = fail_times
+        self.calls = 0
+        self.exc_type = exc_type
+
+    def __call__(self):
+        self.calls += 1
+        if self.calls <= self.fail_times:
+            raise self.exc_type(f"transient failure #{self.calls}")
+        return "success"
+
+
+class TestWithRetry:
+    def test_succeeds_immediately_without_retrying(self):
+        flaky = FlakyCounter(fail_times=0)
+        wrapped = with_retry(max_attempts=3, base_delay=0.01)(flaky)
+        assert wrapped() == "success"
+        assert flaky.calls == 1
+
+    def test_retries_and_eventually_succeeds(self):
+        flaky = FlakyCounter(fail_times=2)
+        wrapped = with_retry(max_attempts=3, base_delay=0.01)(flaky)
+        assert wrapped() == "success"
+        assert flaky.calls == 3
+
+    def test_gives_up_after_max_attempts_and_reraises(self):
+        flaky = FlakyCounter(fail_times=10)
+        wrapped = with_retry(max_attempts=3, base_delay=0.01)(flaky)
+        with pytest.raises(ValueError, match="transient failure #3"):
+            wrapped()
+        assert flaky.calls == 3
+
+    def test_only_retries_specified_exception_types(self):
+        flaky = FlakyCounter(fail_times=5, exc_type=KeyError)
+        wrapped = with_retry(max_attempts=3, base_delay=0.01, exceptions=(ValueError,))(flaky)
+        # KeyError isn't in the retry list, so it should propagate on the first call
+        with pytest.raises(KeyError):
+            wrapped()
+        assert flaky.calls == 1
+
+    def test_backoff_delay_increases_between_attempts(self):
+        flaky = FlakyCounter(fail_times=2)
+        wrapped = with_retry(max_attempts=3, base_delay=0.05, backoff_factor=2.0)(flaky)
+        start = time.monotonic()
+        wrapped()
+        elapsed = time.monotonic() - start
+        # Expect roughly 0.05 + 0.10 = 0.15s of sleeping between the 3 attempts.
+        assert elapsed >= 0.14
+
+    def test_preserves_function_metadata(self):
+        @with_retry(max_attempts=2, base_delay=0.01)
+        def my_function():
+            """docstring"""
+            return 1
+
+        assert my_function.__name__ == "my_function"
+
+
+class TestWithTimeout:
+    def test_fast_function_returns_normally(self):
+        @with_timeout(seconds=1)
+        def fast():
+            return 42
+
+        assert fast() == 42
+
+    def test_slow_function_raises_timeout_error(self):
+        @with_timeout(seconds=0.1)
+        def slow():
+            time.sleep(2)
+            return "too late"
+
+        with pytest.raises(ResilienceTimeoutError):
+            slow()
+
+    def test_exception_inside_wrapped_function_propagates(self):
+        @with_timeout(seconds=1)
+        def raises():
+            raise RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            raises()

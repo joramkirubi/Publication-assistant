@@ -1,4 +1,4 @@
-"""
+﻿"""
 Tool: GitHubRepoTool
 
 Fetches a public GitHub repository's README content and top-level file
@@ -13,8 +13,19 @@ import requests
 from langchain_core.tools import tool
 
 from src.config import settings
+from src.resilience import with_retry
 
 GITHUB_API_ROOT = "https://api.github.com"
+
+# Retried on connection/timeout errors and 5xx/429 responses (raised via
+# resp.raise_for_status()) -- NOT on 404s, which _fetch_readme handles
+# explicitly, or 4xx client errors in general, since retrying a request
+# that's wrong won't make it right.
+_github_retry = with_retry(
+    max_attempts=3,
+    base_delay=1.0,
+    exceptions=(requests.ConnectionError, requests.Timeout, requests.HTTPError),
+)
 
 
 def _parse_owner_repo(repo_url: str) -> tuple[str, str]:
@@ -32,6 +43,7 @@ def _headers() -> dict:
     return headers
 
 
+@_github_retry
 def _fetch_readme(owner: str, repo: str) -> str:
     url = f"{GITHUB_API_ROOT}/repos/{owner}/{repo}/readme"
     resp = requests.get(url, headers=_headers(), timeout=settings.request_timeout)
@@ -43,6 +55,7 @@ def _fetch_readme(owner: str, repo: str) -> str:
     return content[: settings.max_readme_chars]
 
 
+@_github_retry
 def _fetch_top_level_structure(owner: str, repo: str) -> list[str]:
     url = f"{GITHUB_API_ROOT}/repos/{owner}/{repo}/contents/"
     resp = requests.get(url, headers=_headers(), timeout=settings.request_timeout)
@@ -55,6 +68,7 @@ def _fetch_top_level_structure(owner: str, repo: str) -> list[str]:
     return sorted(entries)
 
 
+@_github_retry
 def _fetch_repo_metadata(owner: str, repo: str) -> dict:
     url = f"{GITHUB_API_ROOT}/repos/{owner}/{repo}"
     resp = requests.get(url, headers=_headers(), timeout=settings.request_timeout)

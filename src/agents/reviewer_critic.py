@@ -1,7 +1,7 @@
-"""
+﻿"""
 Agent: Reviewer / Critic
 
-ROLE: Final synthesizer and quality gate — the last agent in the pipeline.
+ROLE: Final synthesizer and quality gate â€” the last agent in the pipeline.
 SPECIALIZATION: Objective structural compliance checking (via a
 deterministic tool, not an LLM opinion) plus synthesis of everything the
 other three agents produced into one final, human-readable report.
@@ -16,7 +16,8 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.llm import get_llm
+from src.guardrails import filter_output
+from src.llm import get_llm, invoke_llm
 from src.state import PublicationAssistantState
 from src.tools.readme_structure_tool import readme_structure_checker
 
@@ -25,7 +26,7 @@ logger = logging.getLogger(__name__)
 SYSTEM_PROMPT = """You are the final reviewer in a multi-agent publication assistant \
 pipeline. You receive: the original README, a structural analysis (which standard \
 sections are present/missing), suggested tags, a suggested title/summary from other \
-agents, and — if a human reviewed this run — their approval status and any free-text \
+agents, and â€” if a human reviewed this run â€” their approval status and any free-text \
 feedback they left.
 
 Write a concise, actionable final report in markdown with these sections:
@@ -35,7 +36,7 @@ Write a concise, actionable final report in markdown with these sections:
 ## Missing Sections (with a one-line fix suggestion for each)
 ## Overall Recommendation (2-3 sentences)
 
-If human feedback is present, weave it into your recommendation explicitly — e.g. if \
+If human feedback is present, weave it into your recommendation explicitly â€” e.g. if \
 they said a tag was wrong or a title didn't fit, acknowledge that and adjust your \
 final recommendation accordingly rather than ignoring it.
 
@@ -83,8 +84,8 @@ def reviewer_critic_node(state: PublicationAssistantState) -> dict:
                 )
             ),
         ]
-        response = llm.invoke(messages)
-        final_report = response.content
+        response = invoke_llm(llm, messages)
+        final_report = filter_output(response.content)
     except Exception as exc:  # noqa: BLE001
         logger.exception("reviewer_critic_node LLM call failed")
         new_errors.append(f"ReviewerCritic: final synthesis failed ({exc}).")

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
 CLI entry point for the Publication Assistant multi-agent system.
 
@@ -16,6 +16,8 @@ from datetime import datetime
 from pathlib import Path
 
 from src.graph import resume_pipeline, start_pipeline
+from src.guardrails import GuardrailViolation
+from src.health import format_health_report, run_health_check
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
@@ -48,7 +50,7 @@ def _human_review_checkpoint(paused_state: dict) -> dict:
     paused here (via LangGraph's interrupt_before), not just printing a
     status message.
     """
-    print("── Human Review Checkpoint ──────────────────────────────")
+    print("== Human Review Checkpoint ==============================")
     print(f"Suggested title:   {paused_state.get('suggested_title') or '(none)'}")
     print(f"Suggested summary: {paused_state.get('suggested_summary') or '(none)'}")
     tags = paused_state.get("suggested_tags") or []
@@ -59,7 +61,7 @@ def _human_review_checkpoint(paused_state: dict) -> dict:
         answer = input("Approve as-is? [Y/n/e=edit]: ").strip().lower()
         if answer in ("", "y", "n", "e"):
             break
-        print(f"  '{answer}' isn't a valid choice — please type Y, n, or e.")
+        print(f"  '{answer}' isn't a valid choice - please type Y, n, or e.")
 
     edits: dict = {}
 
@@ -84,7 +86,13 @@ def _human_review_checkpoint(paused_state: dict) -> dict:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Publication Assistant for AI Projects")
-    parser.add_argument("--repo", required=True, help="GitHub repo URL, e.g. https://github.com/owner/repo")
+    parser.add_argument(
+        "--repo",
+        required=False,
+        default=None,
+        help="GitHub repo URL, e.g. https://github.com/owner/repo "
+        "(required unless --health-check is passed)",
+    )
     parser.add_argument("--description", default=None, help="Optional short project description")
     parser.add_argument(
         "--output",
@@ -103,13 +111,31 @@ def main() -> int:
         help="Skip the interactive human review checkpoint and approve suggestions as-is "
         "(useful for scripting/CI; no --no-save equivalent needed, saving still happens).",
     )
+    parser.add_argument(
+        "--health-check",
+        action="store_true",
+        help="Check configuration and connectivity (API keys set, GitHub/Groq/Tavily "
+        "reachable) and exit without running the pipeline. Useful for deployment "
+        "smoke tests.",
+    )
     args = parser.parse_args()
 
+    if args.health_check:
+        print(format_health_report(run_health_check()))
+        return 0
+
+    if not args.repo:
+        parser.error("--repo is required unless --health-check is passed")
+
     print(f"\nAnalyzing {args.repo} ...\n")
-    app, config, paused_state = start_pipeline(args.repo, args.description)
+    try:
+        app, config, paused_state = start_pipeline(args.repo, args.description)
+    except GuardrailViolation as exc:
+        print(f"[ERROR] Invalid input: {exc}")
+        return 1
 
     if paused_state.get("errors"):
-        print("⚠️  Warnings/errors encountered so far:")
+        print("[WARNING] Warnings/errors encountered so far:")
         for err in paused_state["errors"]:
             print(f"  - {err}")
         print()
@@ -119,10 +145,17 @@ def main() -> int:
     else:
         edits = _human_review_checkpoint(paused_state)
 
-    result = resume_pipeline(app, config, edits=edits)
+    try:
+        result = resume_pipeline(app, config, edits=edits)
+    except Exception as exc:  # noqa: BLE001 - last-resort net; agents already self-handle their own errors
+        logging.getLogger(__name__).exception("Unexpected pipeline failure")
+        print(f"\n[ERROR] The pipeline hit an unexpected error and could not finish: {exc}")
+        print("   (This is unusual -- individual agent failures normally degrade gracefully.")
+        print("    Check the log above, or run --health-check to verify your setup.)")
+        return 1
 
     if result.get("errors"):
-        print("\n⚠️  Warnings/errors encountered during the run:")
+        print("\n[WARNING] Warnings/errors encountered during the run:")
         for err in result["errors"]:
             print(f"  - {err}")
         print()
@@ -136,7 +169,7 @@ def main() -> int:
     output_path = Path(args.output) if args.output else _default_report_path(result, args.repo)
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(report, encoding="utf-8")
-    print(f"\n✅ Report saved to {output_path}")
+    print(f"\n[OK] Report saved to {output_path}")
 
     return 0
 

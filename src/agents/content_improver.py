@@ -1,11 +1,11 @@
-"""
+﻿"""
 Agent: Content Improver
 
-ROLE: Copywriting/positioning specialist — the second of two parallel
+ROLE: Copywriting/positioning specialist â€” the second of two parallel
 branches that run right after Repo Analyzer.
 SPECIALIZATION: Grounded content drafting. Uses web search for external
 positioning context, but is explicitly instructed to draft claims only
-from the README itself — this agent's specific job is balancing "sound
+from the README itself â€” this agent's specific job is balancing "sound
 appealing" against "don't invent features," which is why its prompt is
 separate from Metadata Recommender's narrower tagging job.
 READS FROM STATE: readme_text, repo
@@ -15,7 +15,7 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.llm import get_llm
+from src.llm import get_llm, invoke_llm
 from src.state import PublicationAssistantState
 from src.tools.web_search_tool import web_search
 
@@ -29,7 +29,7 @@ propose:
 2. A 2-3 sentence summary that clearly states what the project does and why it matters
 3. One sentence of positioning notes: how this project compares to similar ones you saw
 
-Ground every claim in the README content provided — do not invent features, \
+Ground every claim in the README content provided â€” do not invent features, \
 performance numbers, or capabilities that aren't described in the README.
 
 Respond in exactly this format:
@@ -68,7 +68,7 @@ def content_improver_node(state: PublicationAssistantState) -> dict:
                 )
             ),
         ]
-        response = llm.invoke(messages)
+        response = invoke_llm(llm, messages)
         text = response.content
 
         title = _extract_field(text, "TITLE")

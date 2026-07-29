@@ -1,12 +1,12 @@
-"""
+﻿"""
 Agent: Metadata Recommender
 
-ROLE: Tagging/categorization specialist — one of two parallel branches
+ROLE: Tagging/categorization specialist â€” one of two parallel branches
 that run right after Repo Analyzer.
 SPECIALIZATION: Combines a deterministic keyword-extraction tool with a
 narrow LLM pass whose only job is filtering raw candidates down to
 publication-quality tags. Does not touch title, summary, or structure
-checking — those belong to other agents.
+checking â€” those belong to other agents.
 READS FROM STATE: readme_text
 WRITES TO STATE: suggested_keywords, suggested_tags, errors
 """
@@ -14,7 +14,7 @@ import logging
 
 from langchain_core.messages import HumanMessage, SystemMessage
 
-from src.llm import get_llm
+from src.llm import get_llm, invoke_llm
 from src.state import PublicationAssistantState
 from src.tools.keyword_extractor_tool import keyword_extractor
 
@@ -57,7 +57,7 @@ def metadata_recommender_node(state: PublicationAssistantState) -> dict:
                 )
             ),
         ]
-        response = llm.invoke(messages)
+        response = invoke_llm(llm, messages)
         tags = [t.strip() for t in response.content.split(",") if t.strip()]
     except Exception as exc:  # noqa: BLE001
         logger.exception("metadata_recommender_node LLM call failed")
