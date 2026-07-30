@@ -55,7 +55,13 @@ class TestWithRetry:
         wrapped()
         elapsed = time.monotonic() - start
         # Expect roughly 0.05 + 0.10 = 0.15s of sleeping between the 3 attempts.
-        assert elapsed >= 0.14
+        # Lower bound has headroom below the theoretical 0.15s: time.sleep() can
+        # wake up a few ms early, especially on Windows' default ~15ms timer
+        # resolution, so a tight bound right at 0.14-0.15 is flaky across
+        # platforms. 0.12 is comfortably below the real behavior (still far
+        # above what you'd see with no backoff at all, e.g. ~0s) while giving
+        # enough slack to not fail on timer jitter alone.
+        assert elapsed >= 0.12
 
     def test_preserves_function_metadata(self):
         @with_retry(max_attempts=2, base_delay=0.01)
