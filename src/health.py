@@ -1,4 +1,4 @@
-﻿"""
+"""
 Health check: verifies configuration and connectivity without running the
 full agent pipeline. Used by `python main.py --health-check`, the
 Streamlit UI's sidebar, and can be wired into a container's HEALTHCHECK /

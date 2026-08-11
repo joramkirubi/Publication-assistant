@@ -1,4 +1,4 @@
-﻿# Local deployment: `docker compose up`
+# Local deployment: `docker compose up`
 #
 # Reads secrets from a local .env file (not committed -- see
 # .env.example). This is the "seamless deployment" path referenced in

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Agent: Repo Analyzer
 
 ROLE: Data-gathering specialist and entry point of the pipeline.

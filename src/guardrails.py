@@ -1,4 +1,4 @@
-﻿"""
+"""
 Guardrails: input validation/sanitization and output filtering.
 
 These are deliberately simple, dependency-light, and deterministic (no LLM

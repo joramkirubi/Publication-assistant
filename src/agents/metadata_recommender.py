@@ -1,4 +1,4 @@
-﻿"""
+"""
 Agent: Metadata Recommender
 
 ROLE: Tagging/categorization specialist - one of two parallel branches

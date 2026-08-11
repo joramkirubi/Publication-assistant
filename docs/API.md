@@ -1,4 +1,4 @@
-﻿# Interface Specification
+# Interface Specification
 
 This project has no REST API -- its "interface" is (1) the shared state
 schema that flows through the graph, and (2) the two front ends (CLI and

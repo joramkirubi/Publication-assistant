@@ -1,4 +1,4 @@
-﻿"""
+"""
 Agent: Content Improver
 
 ROLE: Copywriting/positioning specialist - the second of two parallel

@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 
 from src.guardrails import (
     GuardrailViolation,

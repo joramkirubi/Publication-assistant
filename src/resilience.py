@@ -1,4 +1,4 @@
-﻿"""
+"""
 Resilience helpers: retry-with-backoff and timeout enforcement for outbound
 calls (GitHub API, Tavily web search, Groq LLM calls).
 

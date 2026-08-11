@@ -1,4 +1,4 @@
-﻿# Publication Assistant - container image
+# Publication Assistant - container image
 #
 # Builds an image that runs the Streamlit UI by default. The CLI is also
 # available inside the same image (see docker-compose.yml for a CLI

@@ -1,4 +1,4 @@
-﻿# Troubleshooting & FAQ
+# Troubleshooting & FAQ
 
 ## First step for any issue
 

@@ -1,4 +1,4 @@
-﻿"""
+"""
 Shared state that flows through the LangGraph graph. Every agent node reads
 from and writes to this single TypedDict, which is how the agents
 "communicate" and coordinate in this system.

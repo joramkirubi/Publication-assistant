@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tool: WebSearchTool
 
 Thin wrapper around Tavily's search API, used by the Content Improver agent

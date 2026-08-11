@@ -1,4 +1,4 @@
-﻿"""
+"""
 Agent: Reviewer / Critic
 
 ROLE: Final synthesizer and quality gate - the last agent in the pipeline.

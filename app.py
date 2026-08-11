@@ -1,4 +1,4 @@
-﻿"""
+"""
 Streamlit UI for the Publication Assistant multi-agent system.
 
 Run with:

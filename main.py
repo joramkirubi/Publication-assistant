@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 CLI entry point for the Publication Assistant multi-agent system.
 

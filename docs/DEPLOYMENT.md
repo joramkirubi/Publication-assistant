@@ -1,4 +1,4 @@
-﻿# Deployment & Configuration Guide
+# Deployment & Configuration Guide
 
 ## 1. Prerequisites
 

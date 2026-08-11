@@ -1,4 +1,4 @@
-﻿"""
+"""
 Tool: GitHubRepoTool
 
 Fetches a public GitHub repository's README content and top-level file

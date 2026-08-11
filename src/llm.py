@@ -1,4 +1,4 @@
-﻿"""
+"""
 Single place that constructs the LLM client, so every agent uses the same
 model/temperature configuration.
 """

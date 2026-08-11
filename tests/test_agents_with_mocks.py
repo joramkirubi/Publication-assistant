@@ -1,4 +1,4 @@
-﻿"""
+"""
 These tests mock out the GitHub API and the LLM client so the agent *logic*
 (state in -> state out, error handling) can be verified without needing real
 API keys or network access. End-to-end behavior with real APIs should be
