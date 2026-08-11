@@ -103,20 +103,38 @@ offline without real API keys, in well under a second per test.
   bump them deliberately and re-run the full test suite + a real
   `--health-check` + one live run before deploying an upgrade.
 
-## 8. Optional: containerizing for deployment
+## 8. Containerized deployment
 
-No Dockerfile is included by default (this is a local/portfolio-scale
-tool), but if you need one, a minimal shape is:
+A `Dockerfile`, `docker-compose.yml`, and `.dockerignore` are included at
+the repo root. Secrets are never baked into the image -- they're passed
+at run time via `.env` (Compose) or `-e` flags (plain `docker run`).
 
-```dockerfile
-FROM python:3.11-slim
-WORKDIR /app
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
-COPY . .
-EXPOSE 8501
-CMD ["streamlit", "run", "app.py", "--server.address=0.0.0.0"]
+```powershell
+# One-command deployment, reads secrets from .env
+docker compose up
+
+# Equivalent plain docker commands
+docker build -t publication-assistant .
+docker run -e GROQ_API_KEY=... -e TAVILY_API_KEY=... -p 8501:8501 publication-assistant
 ```
 
-Pass secrets as environment variables at container run time (`docker run
--e GROQ_API_KEY=... `), never baked into the image.
+The image runs the Streamlit UI by default (`CMD` in the `Dockerfile`)
+and includes a container-level `HEALTHCHECK` that calls
+`python main.py --health-check` -- this confirms `GROQ_API_KEY` is set
+and GitHub is reachable, not just that the process is alive, which is
+what Streamlit's own liveness check alone would tell you.
+
+## 9. Continuous integration
+
+`.github/workflows/tests.yml` runs the full test suite (with a 70%
+coverage floor enforced via `--cov-fail-under=70`) on every push and pull
+request to `main`, across Python 3.10, 3.11, and 3.12. A failing test or
+a coverage regression blocks the merge rather than being caught after
+deployment.
+
+## 10. Streamlit-specific configuration
+
+`.streamlit/config.toml` sets headless mode, binds to `0.0.0.0:8501` (so
+it's reachable from outside a container), disables Streamlit's own usage
+telemetry, and enables XSRF protection. This file is read automatically
+by `streamlit run app.py` with no additional flags needed.

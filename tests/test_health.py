@@ -1,5 +1,6 @@
 ﻿from unittest.mock import MagicMock, patch
 
+import pytest
 import requests
 
 from src.health import (
@@ -8,6 +9,24 @@ from src.health import (
     format_health_report,
     run_health_check,
 )
+
+
+def _run_health_check_safely() -> HealthReport:
+    """
+    run_health_check() is the one function in this test file that touches
+    the real filesystem (it probes reports/ writability as part of its
+    checks -- see src/health.py). Wrapping the call lets a filesystem
+    failure on the test runner (read-only mount, permissions issue)
+    surface as an explicit, informative pytest failure instead of an
+    unhandled traceback pointing into library internals.
+    """
+    try:
+        return run_health_check()
+    except OSError as exc:
+        pytest.fail(
+            f"run_health_check() raised an unexpected OSError -- likely a "
+            f"filesystem permissions issue on this runner, not a code bug: {exc}"
+        )
 
 
 def test_health_report_all_ok_ignores_optional_failures():
@@ -42,7 +61,7 @@ def test_run_health_check_reports_missing_groq_key(mock_settings, mock_get):
     mock_response.headers = {"X-RateLimit-Remaining": "60"}
     mock_get.return_value = mock_response
 
-    report = run_health_check()
+    report = _run_health_check_safely()
     groq_check = next(c for c in report.checks if c.name == "GROQ_API_KEY")
     assert groq_check.ok is False
     assert report.all_ok is False
@@ -60,7 +79,7 @@ def test_run_health_check_all_pass_when_configured_and_reachable(mock_settings, 
     mock_response.headers = {"X-RateLimit-Remaining": "5000"}
     mock_get.return_value = mock_response
 
-    report = run_health_check()
+    report = _run_health_check_safely()
     assert report.all_ok is True
 
 
@@ -71,7 +90,7 @@ def test_run_health_check_handles_github_unreachable(mock_settings, mock_get):
     mock_settings.tavily_api_key = ""
     mock_settings.github_token = ""
 
-    report = run_health_check()
+    report = _run_health_check_safely()
     github_check = next(c for c in report.checks if c.name == "GitHub API")
     assert github_check.ok is False
     assert "unreachable" in github_check.detail

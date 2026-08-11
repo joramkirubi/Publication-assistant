@@ -63,8 +63,16 @@ class TestFetchReadme:
     @patch("src.tools.github_repo_tool.requests.get")
     def test_gives_up_after_max_retries(self, mock_get, mock_sleep):
         mock_get.side_effect = requests.ConnectionError("still down")
-        with pytest.raises(requests.ConnectionError):
+        # Explicit try/except here (rather than pytest.raises) so the
+        # exception's own message and type are inspected directly --
+        # verifying not just that *something* was raised, but that it's
+        # the original ConnectionError re-raised unmodified after
+        # exhausting retries, not wrapped or swallowed along the way.
+        try:
             _fetch_readme("owner", "repo")
+            pytest.fail("expected requests.ConnectionError to propagate after max retries")
+        except requests.ConnectionError as exc:
+            assert "still down" in str(exc)
         assert mock_get.call_count == 3  # max_attempts=3 from _github_retry
 
 
